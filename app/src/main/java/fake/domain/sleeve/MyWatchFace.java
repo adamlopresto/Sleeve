@@ -12,6 +12,7 @@ import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -145,11 +146,15 @@ public class MyWatchFace extends CanvasWatchFaceService {
         }
 
         private void initializeBackground() {
+            /*
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(Color.BLACK);
             mBackgroundBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bg);
 
+             */
+
             /* Extracts colors from background image to improve watchface style. */
+            /*
             Palette.from(mBackgroundBitmap).generate(new Palette.PaletteAsyncListener() {
                 @Override
                 public void onGenerated(Palette palette) {
@@ -161,6 +166,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     }
                 }
             });
+            :W
+             */
         }
 
         private void initializeWatchFace() {
@@ -168,8 +175,9 @@ public class MyWatchFace extends CanvasWatchFaceService {
             mTimePaint.setColor(Color.WHITE);
             mTimePaint.setTextAlign(Paint.Align.CENTER);
             mTimePaint.setAntiAlias(true);
-            mTimePaint.setTextSize(45f);
+            mTimePaint.setTextSize(60f);
             mTimePaint.setStyle(Paint.Style.STROKE);
+            mTimePaint.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
 
             /* Set defaults for colors */
             mWatchHandColor = Color.WHITE;
@@ -237,6 +245,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
         private void updateWatchHandStyle() {
             if (mAmbient) {
+                mTimePaint.setStyle(Paint.Style.STROKE);
                 mHourPaint.setColor(Color.WHITE);
                 mMinutePaint.setColor(Color.WHITE);
                 mSecondPaint.setColor(Color.WHITE);
@@ -253,6 +262,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
                 mTickAndCirclePaint.clearShadowLayer();
 
             } else {
+                mTimePaint.setStyle(Paint.Style.FILL);
                 mHourPaint.setColor(mWatchHandColor);
                 mMinutePaint.setColor(mWatchHandColor);
                 mSecondPaint.setColor(mWatchHandHighlightColor);
@@ -371,7 +381,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
             long now = System.currentTimeMillis();
             mCalendar.setTimeInMillis(now);
 
-            //drawBackground(canvas);
+            drawBackground(canvas);
             drawWatchFace(canvas);
         }
 
