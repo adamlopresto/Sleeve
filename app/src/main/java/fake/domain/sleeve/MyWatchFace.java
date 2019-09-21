@@ -1,6 +1,8 @@
 package fake.domain.sleeve;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -9,6 +11,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
@@ -86,12 +89,14 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
         private boolean mAmbient;
 
+        private SharedPreferences prefs;
+
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
 
             setWatchFaceStyle(new WatchFaceStyle.Builder(MyWatchFace.this)
-                    .setAcceptsTapEvents(false)
+                    .setAcceptsTapEvents(true)
                     .build());
 
             initializeWatchFace();
@@ -105,6 +110,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
             mTimePaint.setTextSize(60f);
             mTimePaint.setStyle(Paint.Style.FILL);
             mTimePaint.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+
+            prefs = PreferenceManager.getDefaultSharedPreferences(MyWatchFace.this);
         }
 
         @Override
@@ -177,8 +184,14 @@ public class MyWatchFace extends CanvasWatchFaceService {
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
                     // TODO: Add code to handle the tap gesture.
+                    /*
                     Toast.makeText(getApplicationContext(), R.string.message, Toast.LENGTH_SHORT)
                             .show();
+                     */
+
+                    Intent i = new Intent(getApplicationContext(), ConfigActivity.class);
+                    startActivity(i);
+
                     break;
             }
             invalidate();
@@ -202,7 +215,9 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
             //int deg = new Date().getSeconds() % 20 + 70;
             //canvas.drawText(Integer.toString(deg), mCenterX, mCenterY, mTimePaint );
-            canvas.rotate(80, mCenterX, mCenterY);
+            int deg = prefs.getInt("angle", 80);
+
+            canvas.rotate(deg, mCenterX, mCenterY);
             canvas.translate(0, -mHeight*0.34f);
             canvas.drawText(timeFormat.format(new Date()), mCenterX, mCenterY, mTimePaint );
 
