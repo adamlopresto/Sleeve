@@ -39,6 +39,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
      * only need to update once a minute.
      */
     private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.MINUTES.toMillis(1);
+    //private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(1);
 
     /**
      * Handler message id for updating the time periodically in interactive mode.
@@ -79,7 +80,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
         private float mCenterX;
         private float mCenterY;
         private float mWidth;
-        //private float mHeight;
+        private float mHeight;
 
         private Paint mTimePaint;
 
@@ -154,7 +155,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
              * entire screen, not just the usable portion.
              */
             mWidth = width;
-            //mHeight = height;
+            mHeight = height;
             mCenterX = width / 2f;
             mCenterY = height / 2f;
 
@@ -199,8 +200,10 @@ public class MyWatchFace extends CanvasWatchFaceService {
              */
             canvas.save();
 
-            canvas.translate(mWidth*0.25f, 0f);
-            canvas.rotate(90, mCenterX, mCenterY);
+            //int deg = new Date().getSeconds() % 20 + 70;
+            //canvas.drawText(Integer.toString(deg), mCenterX, mCenterY, mTimePaint );
+            canvas.rotate(80, mCenterX, mCenterY);
+            canvas.translate(0, -mHeight*0.34f);
             canvas.drawText(timeFormat.format(new Date()), mCenterX, mCenterY, mTimePaint );
 
             canvas.restore();
