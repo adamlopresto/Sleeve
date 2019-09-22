@@ -184,13 +184,25 @@ public class MyWatchFace extends CanvasWatchFaceService {
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
                     // TODO: Add code to handle the tap gesture.
-                    /*
-                    Toast.makeText(getApplicationContext(), R.string.message, Toast.LENGTH_SHORT)
-                            .show();
-                     */
+                    float fx = x/mWidth;
+                    float fy = y/mHeight;
 
-                    Intent i = new Intent(getApplicationContext(), ConfigActivity.class);
-                    startActivity(i);
+                    if (fx<fy && fy<(1-fx)) {
+                        //Left quadrant
+                        Intent i = new Intent(getApplicationContext(), ConfigActivity.class);
+                        startActivity(i);
+                    } else if (fy < 0.5f){
+                        int deg = prefs.getInt("angle", 80);
+                        prefs.edit().putInt("angle", deg-1).commit();
+                        invalidate();
+                        //Toast.makeText(getApplicationContext(), fx+","+fy+" top", Toast.LENGTH_SHORT).show();
+                    } else {
+                        int deg = prefs.getInt("angle", 80);
+                        prefs.edit().putInt("angle", deg+1).commit();
+                        invalidate();
+                        //Toast.makeText(getApplicationContext(), fx + "," + fy + " bottom", Toast.LENGTH_SHORT).show();
+                    }
+
 
                     break;
             }
