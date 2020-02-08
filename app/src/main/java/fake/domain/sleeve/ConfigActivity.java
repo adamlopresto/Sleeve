@@ -1,5 +1,6 @@
 package fake.domain.sleeve;
 
+import android.content.ComponentName;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -11,6 +12,8 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.wearable.activity.WearableActivity;
+import android.support.wearable.complications.ComplicationData;
+import android.support.wearable.complications.ProviderChooserIntent;
 import android.view.View;
 import android.widget.NumberPicker;
 
@@ -23,6 +26,8 @@ import java.util.Date;
 public class ConfigActivity extends WearableActivity {
 
     private NumberPicker angle;
+
+    public static final int PROVIDER_CHOOSER_REQUEST_CODE = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +48,19 @@ public class ConfigActivity extends WearableActivity {
             public void onValueChange(NumberPicker numberPicker, int oldVal, int newVal) {
                 prefs.edit().putInt("angle", newVal).commit();
                 topLayout.postInvalidate();
+            }
+        });
+
+        final View btn = findViewById(R.id.complicationButton);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ConfigActivity.this.startActivityForResult(
+                        ProviderChooserIntent.createProviderChooserIntent(
+                                new ComponentName(getApplicationContext(), MyWatchFace.class),
+                                0,
+                                ComplicationData.TYPE_LONG_TEXT) ,
+                        PROVIDER_CHOOSER_REQUEST_CODE);
             }
         });
         // Enables Always-on

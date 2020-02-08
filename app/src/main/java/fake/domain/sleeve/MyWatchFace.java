@@ -1,6 +1,7 @@
 package fake.domain.sleeve;
 
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
@@ -8,13 +9,18 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.wearable.complications.ComplicationData;
+import android.support.wearable.complications.ComplicationText;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.widget.Toast;
 
@@ -48,6 +54,9 @@ public class MyWatchFace extends CanvasWatchFaceService {
      * Handler message id for updating the time periodically in interactive mode.
      */
     private static final int MSG_UPDATE_TIME = 0;
+
+    //Id value for the one and only (so far) complication
+    public static final int complicationId = 0;
 
     @Override
     public Engine onCreateEngine() {
@@ -86,10 +95,17 @@ public class MyWatchFace extends CanvasWatchFaceService {
         private float mHeight;
 
         private Paint mTimePaint;
+        private Paint complicationPaint;
+        private Paint subtitlePaint;
 
         private boolean mAmbient;
 
         private SharedPreferences prefs;
+
+        private String complicationText;
+        private String complicationSubtitle;
+        private Drawable complicationIcon;
+        private PendingIntent complicationIntent;
 
         @Override
         public void onCreate(SurfaceHolder holder) {
@@ -99,7 +115,13 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     .setAcceptsTapEvents(true)
                     .build());
 
+            initializeComplications();
+
             initializeWatchFace();
+        }
+
+        private void initializeComplications() {
+            setActiveComplications(0);
         }
 
         private void initializeWatchFace() {
@@ -110,6 +132,22 @@ public class MyWatchFace extends CanvasWatchFaceService {
             mTimePaint.setTextSize(60f);
             mTimePaint.setStyle(Paint.Style.FILL);
             mTimePaint.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+
+            complicationPaint = new Paint();
+            complicationPaint.setColor(Color.WHITE);
+            complicationPaint.setTextAlign(Paint.Align.CENTER);
+            complicationPaint.setAntiAlias(true);
+            complicationPaint.setTextSize(30f);
+            complicationPaint.setStyle(Paint.Style.FILL);
+            complicationPaint.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+
+            subtitlePaint = new Paint();
+            subtitlePaint.setColor(Color.LTGRAY);
+            subtitlePaint.setTextAlign(Paint.Align.CENTER);
+            subtitlePaint.setAntiAlias(true);
+            subtitlePaint.setTextSize(20f);
+            subtitlePaint.setStyle(Paint.Style.FILL);
+            subtitlePaint.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
 
             prefs = PreferenceManager.getDefaultSharedPreferences(MyWatchFace.this);
         }
@@ -140,6 +178,44 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
             /* Check and trigger whether or not timer should be running (only in active mode). */
             updateTimer();
+
+            mTimePaint.setAntiAlias(!inAmbientMode);
+            complicationPaint.setAntiAlias(!inAmbientMode);
+            subtitlePaint.setAntiAlias(!inAmbientMode);
+
+            postInvalidate();
+        }
+
+        @Override
+        public void onComplicationDataUpdate(int watchFaceComplicationId, ComplicationData data) {
+            super.onComplicationDataUpdate(watchFaceComplicationId, data);
+
+            Log.e("Sleeve", "Got new complication data"+data.toString());
+
+            ComplicationText text = data.getLongText();
+            if (text != null) {
+                complicationText = text.getText(getApplicationContext(), System.currentTimeMillis()).toString();
+            } else {
+                complicationText = null;
+            }
+
+            text = data.getLongTitle();
+            if (text != null) {
+                complicationSubtitle = text.getText(getApplicationContext(), System.currentTimeMillis()).toString();
+            } else {
+                complicationSubtitle = null;
+            }
+
+            /*
+            Icon icon = data.getSmallImage();
+            if (icon != null)
+                complicationIcon = icon.loadDrawable(getBaseContext());
+             */
+            complicationIcon = null;
+
+            complicationIntent = data.getTapAction();
+
+            postInvalidate();
         }
 
         private void updateWatchHandStyle() {
@@ -191,6 +267,16 @@ public class MyWatchFace extends CanvasWatchFaceService {
                         //Left quadrant
                         Intent i = new Intent(getApplicationContext(), ConfigActivity.class);
                         startActivity(i);
+                    } else if (fx>fy && fy>1-fx){
+                        //Right quadrant
+                        Toast.makeText(getApplicationContext(), "Clicked right quadrant", Toast.LENGTH_LONG).show();
+                        if (complicationIntent != null) {
+                            try {
+                                complicationIntent.send();
+                            } catch (PendingIntent.CanceledException ignored) {
+                            }
+                            ;
+                        }
                     } else if (fy < 0.5f){
                         int deg = prefs.getInt("angle", 80);
                         prefs.edit().putInt("angle", deg-1).commit();
@@ -232,6 +318,19 @@ public class MyWatchFace extends CanvasWatchFaceService {
             canvas.rotate(deg, mCenterX, mCenterY);
             canvas.translate(0, -mHeight*0.34f);
             canvas.drawText(timeFormat.format(new Date()), mCenterX, mCenterY, mTimePaint );
+
+            if (complicationText != null) {
+                canvas.translate(0, mHeight * 0.09f);
+                canvas.drawText(complicationText, mCenterX, mCenterY, complicationPaint);
+            }
+
+            if (complicationSubtitle != null) {
+                canvas.translate(0, mHeight * 0.06f);
+                canvas.drawText(complicationSubtitle, mCenterX, mCenterY, subtitlePaint);
+            }
+
+            if (complicationIcon != null)
+                complicationIcon.draw(canvas);
 
             canvas.restore();
         }
