@@ -269,7 +269,6 @@ public class MyWatchFace extends CanvasWatchFaceService {
                         startActivity(i);
                     } else if (fx>fy && fy>1-fx){
                         //Right quadrant
-                        Toast.makeText(getApplicationContext(), "Clicked right quadrant", Toast.LENGTH_LONG).show();
                         if (complicationIntent != null) {
                             try {
                                 complicationIntent.send();
